@@ -1,9 +1,20 @@
 from src.channel import Channel
+import os
+
+# Установка переменной окружения YT_API_KEY
+os.environ["YT_API_KEY"] = "AIzaSyB4PKTu_G2TtXBzUGP0zN0XzwNn7gjZjCI"
 
 if __name__ == '__main__':
+    # Создание экземпляра класса Channel
     moscowpython = Channel('UC-OVMPlMA3-YCIeg4z5z23A')
+
+    # Вывод информации о канале в консоль
     moscowpython.print_info()
 
+    """ 
+    образец данных YouTube канала, которые могут быть получены после успешного 
+    выполнения кода и вывода информации о канале MoscowPython.
+    """
     """
 {
   "kind": "youtube#channelListResponse",
@@ -54,5 +65,4 @@ if __name__ == '__main__':
     }
   ]
 }
-
     """
