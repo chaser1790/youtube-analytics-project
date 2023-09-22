@@ -2,7 +2,6 @@ from googleapiclient.discovery import build
 import json
 import os
 
-
 class Channel:
     """Класс для работы с ютуб-каналом."""
 
@@ -12,23 +11,81 @@ class Channel:
 
         :param channel_id: строка, представляющая ID канала на YouTube.
         """
-        self.channel_id = channel_id
+        self._channel_id = channel_id
+        self._youtube = self.get_service()
+        self._fetch_channel_data()
+
+    @property
+    def channel_id(self):
+        """ID канала"""
+        return self._channel_id
+
+    @property
+    def title(self):
+        """Заголовок (название) канала"""
+        return self._title
+
+    @property
+    def description(self):
+        """Описание канала"""
+        return self._description
+
+    @property
+    def url(self):
+        """URL канала на YouTube"""
+        return f'https://www.youtube.com/channel/{self.channel_id}'
+
+    @property
+    def subscribers(self):
+        """Количество подписчиков канала"""
+        return self._subscribers
+
+    @property
+    def video_count(self):
+        """Количество видео на канале"""
+        return self._video_count
+
+    @property
+    def views(self):
+        """Общее количество просмотров видео канала"""
+        return self._views
+
+    @classmethod
+    def get_service(cls):
+        """
+        Возвращает объект для работы с YouTube API.
+
+        :return: экземпляр googleapiclient.discovery.Resource для работы с YouTube API.
+        """
         api_key: str = os.getenv('YT_API_KEY')
-        self.youtube = build('youtube', 'v3', developerKey=api_key)
+        return build('youtube', 'v3', developerKey=api_key)
 
-    @staticmethod
-    def printj(dict_to_print: dict) -> None:
+    def _fetch_channel_data(self):
         """
-        Выводит словарь в удобном и красивом стиле JSON с отступами.
+        Получает данные канала с YouTube API и инициализирует атрибуты канала.
+        """
+        channel = self._youtube.channels().list(id=self.channel_id, part='snippet,statistics').execute()
+        self._title = channel['items'][0]['snippet']['title']
+        self._description = channel['items'][0]['snippet']['description']
+        self._subscribers = int(channel['items'][0]['statistics']['subscriberCount'])
+        self._video_count = int(channel['items'][0]['statistics']['videoCount'])
+        self._views = int(channel['items'][0]['statistics']['viewCount'])
 
-        :param dict_to_print: словарь для вывода.
+    def to_json(self, filename: str):
         """
-        print(json.dumps(dict_to_print, indent=2, ensure_ascii=False))
+        Сохраняет значения атрибутов экземпляра Channel в указанный файл JSON.
 
-    def print_info(self) -> None:
+        :param filename: имя файла для сохранения данных канала.
         """
-        Получает и выводит информацию о канале на YouTube с использованием YouTube Data API v3,
-        включая название, описание, количество подписчиков, количестве просмотров и т. д.
-        """
-        channel = self.youtube.channels().list(id=self.channel_id, part='snippet,statistics').execute()
-        self.printj(channel)
+        data = {
+            'channel_id': self.channel_id,
+            'title': self.title,
+            'description': self.description,
+            'url': self.url,
+            'subscribers': self.subscribers,
+            'video_count': self.video_count,
+            'views': self.views
+        }
+
+        with open(filename, 'w', encoding='utf-8') as json_file:
+            json.dump(data, json_file, ensure_ascii=False, indent=2)

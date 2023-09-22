@@ -1,8 +1,12 @@
 from src.channel import Channel
 import os
 
-# Установка переменной окружения YT_API_KEY
-os.environ["YT_API_KEY"] = "AIzaSyB4PKTu_G2TtXBzUGP0zN0XzwNn7gjZjCI"
+def load_api_key(file_path: str) -> str:
+    with open(file_path, 'r') as file:
+        return file.read().strip()
+
+api_key_file_path = 'D:\\api_key.txt'
+os.environ["YT_API_KEY"] = load_api_key(api_key_file_path)
 
 if __name__ == '__main__':
     # Создание экземпляра класса Channel
