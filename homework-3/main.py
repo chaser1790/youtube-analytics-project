@@ -1,4 +1,19 @@
 from src.channel import Channel
+import os
+
+def load_api_key(file_path: str) -> str:
+    """
+    Читает текстовый файл, содержащий YouTube API ключ, из заданного пути.
+
+    :param file_path: Путь к файлу с ключом YouTube API.
+    :return: Строка с ключом YouTube API.
+    """
+    with open(file_path, 'r') as file:
+        return file.read().strip()
+
+api_key_file_path = 'D:\\api_key.txt'
+# Устанавливает переменную окружения YT_API_KEY в значение ключа YouTube API
+os.environ["YT_API_KEY"] = load_api_key(api_key_file_path)
 
 if __name__ == '__main__':
     # Создаем два экземпляра класса
