@@ -1,61 +1,64 @@
+import os
+from googleapiclient.discovery import build
+
+
 class Video:
-    """
-    Класс Video представляет видео с заданными атрибутами.
-
-    Attributes:
-        video_id (str): Уникальный идентификатор видео.
-        title (str): Название видео.
-        url (str): Ссылка на видео.
-        views (int): Количество просмотров видео (по умолчанию 0).
-        likes (int): Количество лайков видео (по умолчанию 0).
-    """
-
-    def __init__(self, video_id, title='', url='', views=0, likes=0):
+    def __init__(self, video_id, title=None, url=None, view_count=None, like_count=None):
         """
-        Инициализирует экземпляр класса Video с заданными атрибутами.
+        Инициализация объекта класса Video с получением данных о видео из YouTube API.
 
-        Args:
-            video_id (str): Уникальный идентификатор видео.
-            title (str, optional): Название видео. По умолчанию пустая строка.
-            url (str, optional): Ссылка на видео. По умолчанию пустая строка.
-            views (int, optional): Количество просмотров видео. По умолчанию 0.
-            likes (int, optional): Количество лайков видео. По умолчанию 0.
+        :param video_id: Уникальный идентификатор видео на YouTube.
+        :param title: Заголовок видео. По умолчанию None, будет получен из YouTube API.
+        :param url: URL видео. По умолчанию None, будет сформирован на основе video_id.
+        :param view_count: Количество просмотров видео. По умолчанию None, будет получено из YouTube API.
+        :param like_count: Количество лайков под видео. По умолчанию None, будет получено из YouTube API.
         """
-        self.video_id = video_id
-        self.title = title
-        self.url = url
-        self.views = views
-        self.likes = likes
+
+        youtube = build('youtube', 'v3', developerKey=os.environ.get("YT_API_KEY"))  # Инициализация сервиса YouTube
+        request = youtube.videos().list(part="snippet,statistics", id=video_id)  # Создание запроса к API
+        response = None  # Установка начального значения переменной ответа
+
+        try:
+            response = request.execute()  # Выполнение запроса
+        except Exception as e:
+            print(f'Произошла ошибка: {e}')
+
+        # Если были получены данные из API
+        if response['items']:
+            item = response['items'][0]  # Получение информации о видео
+
+            self.video_id = video_id
+            self.title = item['snippet']['title']  # Получение заголовка видео
+            self.url = f'https://www.youtube.com/watch?v={video_id}'  # Формирование URL видео
+            self.view_count = int(item['statistics'].get('viewCount', 0))  # Получение количества просмотров
+            self.like_count = int(item['statistics'].get('likeCount', 0))  # Получение количества лайков
+        else:
+            self.video_id = video_id
+            self.title = None
+            self.url = None
+            self.view_count = None
+            self.like_count = None
 
     def __str__(self):
-        """
-        Возвращает строковое представление объекта Video (название видео).
+        """Возвращение строки при преобразовании объекта в текст.
 
-        Returns:
-            str: Название видео.
+        :return: Заголовок видео.
         """
         return self.title
 
 
 class PLVideo(Video):
-    """
-    Класс PLVideo представляет видео, связанное с определенным плейлистом.
-
-    Attributes:
-        playlist_id (str): Уникальный идентификатор плейлиста, к которому принадлежит видео.
-    """
-
-    def __init__(self, video_id, playlist_id, title='', url='', views=0, likes=0):
+    def __init__(self, video_id, playlist_id, title=None, url=None, view_count=None, like_count=None):
         """
-        Инициализирует экземпляр класса PLVideo с заданными атрибутами.
+        Инициализация объекта класса PLVideo, наследника класса Video, с дополнительным параметром playlist_id.
 
-        Args:
-            video_id (str): Уникальный идентификатор видео.
-            playlist_id (str): Уникальный идентификатор плейлиста.
-            title (str, optional): Название видео. По умолчанию пустая строка.
-            url (str, optional): Ссылка на видео. По умолчанию пустая строка.
-            views (int, optional): Количество просмотров видео. По умолчанию 0.
-            likes (int, optional): Количество лайков видео. По умолчанию 0.
+        :param video_id: Уникальный идентификатор видео на YouTube.
+        :param playlist_id: Уникальный идентификатор плейлиста, которому принадлежит видео.
+        :param title: Заголовок видео. По умолчанию None, будет получен из YouTube API.
+        :param url: URL видео. По умолчанию None, будет сформирован на основе video_id.
+        :param view_count: Количество просмотров видео. По умолчанию None, будет получено из YouTube API.
+        :param like_count: Количество лайков под видео. По умолчанию None, будет получено из YouTube API.
         """
-        super().__init__(video_id, title, url, views, likes)
-        self.playlist_id = playlist_id
+
+        super().__init__(video_id, title, url, view_count, like_count)  # Инициализация класса Video
+        self.playlist_id = playlist_id  # Установка идентификатора плейлиста
